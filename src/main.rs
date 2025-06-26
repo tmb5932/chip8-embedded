@@ -634,7 +634,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Clear display
     display.clear(BinaryColor::Off).unwrap();
     
-    let filename = "roms/tests/delay-timer-test.ch8";
+    let filename = "roms/tests/6-keypad.ch8";
     let load_store = true;
     let clip = true;
     let vf_reset = true;
