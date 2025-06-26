@@ -21,15 +21,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Clear display
     display.clear(BinaryColor::Off).unwrap();
-
-    // Create a text style
-    let style = MonoTextStyle::new(&FONT_6X10, BinaryColor::On);
     
-    let bitmap: [[bool; 128]; 64] = [[false; 128]; 64]; // Replace with your actual data
-    for (y, row) in bitmap.iter().enumerate() {
-        for (x, &pixel_on) in row.iter().enumerate() {
+    let mut bitmap: [[bool; 128]; 64] = [[false; 128]; 64];
+
+    for y in 0..64 {
+        for x in 0..128 {
             if x % 2 == 0 && y % 2 != 0 {
-                bitmap[x][y] = true;
+                bitmap[y][x] = true;
             }
         }
     }
