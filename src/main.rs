@@ -640,7 +640,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let jump = false;
     let quirks = Quirks::new(load_store, shift, jump, vf_reset, clip);
 
-    let debug = false;
+    let debug = true;
 
     run_game(&mut display, filename.to_string(), quirks, debug)?;
 
