@@ -602,7 +602,7 @@ where
         if chip8.draw_flag {
             chip8.draw_flag = false;
 
-            update_display(&mut ssd1306, &chip8.display);
+            update_display(ssd1306, &chip8.display);
         }
 
         //  Frame rate limiting
