@@ -538,7 +538,7 @@ chip8_buffer: &[[bool; DISPLAY_WIDTH]; DISPLAY_HEIGHT],
 
 }
 
-fn run_game(
+fn run_game<I2C>(
     ssd1306: &mut Ssd1306<I2C, DisplaySize128x64, BufferedGraphicsMode<DisplaySize128x64>>, 
     rom: String, 
     quirks: Quirks, 
