@@ -4,6 +4,7 @@ use rand::{RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use std::time::{Duration, Instant};
 use ssd1306::mode::BufferedGraphicsMode;
+use std::env;
 
 use crossterm::event::{self, Event, KeyCode};
 use embedded_graphics::{
@@ -617,6 +618,9 @@ where
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+
+    println!("Current directory: {:?}", env::current_dir()?);
+
     let i2c = I2cdev::new("/dev/i2c-1").unwrap();
     let interface = I2CDisplayInterface::new(i2c);
 
