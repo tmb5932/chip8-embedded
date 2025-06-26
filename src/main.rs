@@ -4,8 +4,8 @@ use rand::{RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use std::time::{Duration, Instant};
 use ssd1306::mode::BufferedGraphicsMode;
-use std::env;
 
+use crossterm::terminal::{enable_raw_mode, disable_raw_mode};
 use crossterm::event::{self, Event, KeyCode};
 use embedded_graphics::{
     pixelcolor::BinaryColor,
@@ -548,7 +548,6 @@ fn run_game<I2C>(
 where
     I2C: WriteOnlyDataCommand,
 {
-
     let timer_interval = Duration::from_millis(16);
     let mut last_timer_tick = Instant::now();    
 
@@ -618,8 +617,7 @@ where
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-
-    println!("Current directory: {:?}", env::current_dir()?);
+    enable_raw_mode()?; // Enable raw mode
 
     let i2c = I2cdev::new("/dev/i2c-1").unwrap();
     let interface = I2CDisplayInterface::new(i2c);
@@ -645,6 +643,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let debug = false;
 
     run_game(&mut display, filename.to_string(), quirks, debug)?;
+
+    disable_raw_mode()?; // Always restore raw mode on exit
 
     Ok(())
 }
