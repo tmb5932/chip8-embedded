@@ -21,15 +21,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Clear display
     display.clear(BinaryColor::Off).unwrap();
     
-    let mut bitmap: [[bool; 128]; 64] = [[false; 128]; 64];
+    let mut bitmap: [[bool; 128]; 64] = [[true; 128]; 64];
 
-    for y in 0..64 {
-        for x in 0..128 {
-            if x % 3 == 0 && y % 3 == 0 {
-                bitmap[y][x] = true;
-            }
-        }
-    }
+    // for y in 0..64 {
+    //     for x in 0..128 {
+    //         if x % 3 == 0 && y % 3 == 0 {
+    //             bitmap[y][x] = true;
+    //         }
+    //     }
+    // }
 
     for (y, row) in bitmap.iter().enumerate() {
         for (x, &pixel_on) in row.iter().enumerate() {
