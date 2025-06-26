@@ -3,6 +3,7 @@ use ssd1306::{prelude::*, I2CDisplayInterface, Ssd1306};
 use rand::{RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use std::time::{Duration, Instant};
+use ssd1306::mode::BufferedGraphicsMode;
 
 use crossterm::event::{self, Event, KeyCode};
 use embedded_graphics::{
