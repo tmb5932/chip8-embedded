@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for y in 0..64 {
         for x in 0..128 {
-            if x % 2 == 0 && y % 2 != 0 {
+            if x % 3 == 0 && y % 3 == 0 {
                 bitmap[y][x] = true;
             }
         }
