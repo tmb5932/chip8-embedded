@@ -26,7 +26,7 @@ const KEY_MAP: [[u8; 4]; 4] = [
 // Display constants
 const DISPLAY_WIDTH: usize = 64;
 const DISPLAY_HEIGHT: usize = 32;
-const SCALE: u32 = 10;
+
 const FONTSET_START: usize = 0x50;
 const ROM_START: usize = 0x200;
 
@@ -557,19 +557,21 @@ where
 
     chip8.debug = debug;
 
-    let frame_duration = std::time::Duration::from_micros(00); // 2_000 is roughly 60hz? But slow for keypress 
-
+    let mut id: u128 = 0;
     'running: loop {
-        let frame_start = Instant::now();
+        println!("{}", id);
+        id += 1;
 
         // Handle keyboard
         for (i, row) in rows.iter_mut().enumerate() {
             row.set_low(); // pull current row low
 
             for (j, col) in cols.iter().enumerate() {
+                let key = KEY_MAP[i][j];
                 if col.read() == Level::Low {
-                    let key = KEY_MAP[i][j];
-                    println!("Key {:X?} pressed", key);
+                    chip8.keypad[key as usize] = true;
+                } else {
+                    chip8.keypad[key as usize] = false;
                 }
             }
 
@@ -598,13 +600,6 @@ where
 
             update_display(ssd1306, &chip8.display);
         }
-
-        //  Frame rate limiting
-        let elapsed = frame_start.elapsed();
-        if elapsed < frame_duration {
-            let delay = frame_duration - elapsed;
-            std::thread::sleep(delay);
-        }
     };
 
     Ok(())
@@ -626,7 +621,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Clear display
     display.clear(BinaryColor::Off).unwrap();
     
-    let filename = "roms/tests/6-keypad.ch8";
+    let filename = "roms/tests/zero-demo.ch8";
     let load_store = true;
     let clip = true;
     let vf_reset = true;
@@ -634,7 +629,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let jump = false;
     let quirks = Quirks::new(load_store, shift, jump, vf_reset, clip);
 
-    let debug = true;
+    let debug = false;
 
     run_game(&mut display, gpio, filename.to_string(), quirks, debug)?;
 
