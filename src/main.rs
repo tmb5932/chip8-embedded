@@ -3,6 +3,7 @@ use ssd1306::{prelude::*, I2CDisplayInterface, Ssd1306};
 use rand::{RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use std::time::{Duration, Instant};
+use rppal::gpio::Gpio;
 use ssd1306::mode::BufferedGraphicsMode;
 
 use crossterm::terminal::{enable_raw_mode, disable_raw_mode};
@@ -13,6 +14,18 @@ use embedded_graphics::{
     Drawable,
 };
 
+// Keypad constants
+const ROW_PINS: [u8; 4] = [17, 27, 22, 10];
+const COL_PINS: [u8; 4] = [0, 5, 6, 13];
+
+const KEY_MAP: [[u8; 4]; 4] = [
+    [0x1, 0x2, 0x3, 0xC],
+    [0x4, 0x5, 0x6, 0xD],
+    [0x7, 0x8, 0x9, 0xE],
+    [0xA, 0x0, 0xB, 0xF],
+];
+
+// Display constants
 const DISPLAY_WIDTH: usize = 64;
 const DISPLAY_HEIGHT: usize = 32;
 const SCALE: u32 = 10;
@@ -37,28 +50,6 @@ const FONTSET: [u8; 80] = [
     0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 ];
-
-fn map_char_to_chip8_key(c: char) -> Option<usize> {
-    match c {
-        '1' => Some(0x1),
-        '2' => Some(0x2),
-        '3' => Some(0x3),
-        '4' => Some(0xC),
-        'q' => Some(0x4),
-        'w' => Some(0x5),
-        'e' => Some(0x6),
-        'r' => Some(0xD),
-        'a' => Some(0x7),
-        's' => Some(0x8),
-        'd' => Some(0x9),
-        'f' => Some(0xE),
-        'z' => Some(0xA),
-        'x' => Some(0x0),
-        'c' => Some(0xB),
-        'v' => Some(0xF),
-        _ => None,
-    }
-}
 
 struct Quirks {
     load_store: bool,
@@ -541,6 +532,8 @@ chip8_buffer: &[[bool; DISPLAY_WIDTH]; DISPLAY_HEIGHT],
 
 fn run_game<I2C>(
     ssd1306: &mut Ssd1306<I2C, DisplaySize128x64, BufferedGraphicsMode<DisplaySize128x64>>, 
+    rows: Vec<_>,
+    cols: Vec<_>,
     rom: String, 
     quirks: Quirks, 
     debug: bool
@@ -563,23 +556,17 @@ where
         let frame_start = Instant::now();
 
         // Handle keyboard
-        if event::poll(Duration::from_millis(0))? {
-            if let Event::Key(key_event) = event::read()? {
-                match key_event.code {
-                    KeyCode::Char(' ') => {
-                        if chip8.debug {
-                            chip8.paused = false;
-                        }
-                    }
-                    KeyCode::Char(c) => {
-                        if let Some(i) = map_char_to_chip8_key(c) {
-                            chip8.keypad[i] = true;
-                        }
-                    }
-                    KeyCode::Esc => break 'running,
-                    _ => {}
+        for (i, row) in rows.iter_mut().enumerate() {
+            row.set_low(); // pull current row low
+
+            for (j, col) in cols.iter().enumerate() {
+                if col.read() == Level::Low {
+                    let key = CHIP8_KEY_MAP[i][j];
+                    println!("Key {:X?} pressed", key);
                 }
             }
+
+            row.set_high(); // reset row to high
         }
 
         // Timers
@@ -621,6 +608,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let i2c = I2cdev::new("/dev/i2c-1").unwrap();
     let interface = I2CDisplayInterface::new(i2c);
+    
+    let gpio = Gpio::new().unwrap();
+
+    // Get all keypad row pins
+    let mut rows: Vec<_> = ROW_PINS.iter()
+        .map(|&pin| gpio.get(pin).unwrap().into_output_high())
+        .collect();
+
+    // Get all keypad col pins
+    let cols: Vec<_> = COL_PINS.iter()
+        .map(|&pin| gpio.get(pin).unwrap().into_input_pullup())
+        .collect();
+
 
     // Create display instance
     let mut display = Ssd1306::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
@@ -642,7 +642,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let debug = true;
 
-    run_game(&mut display, filename.to_string(), quirks, debug)?;
+    run_game(&mut display, rows, cols, filename.to_string(), quirks, debug)?;
 
     disable_raw_mode()?; // Always restore raw mode on exit
 
