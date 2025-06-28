@@ -5,7 +5,7 @@ use rand_chacha::ChaCha8Rng;
 use std::time::{Duration, Instant};
 
 use ssd1306::mode::BufferedGraphicsMode;
-use rppal::gpio::{Gpio, Level};
+use rppal::gpio::{Gpio, Level, OutputPin, InputPin};
 use embedded_graphics::{
     pixelcolor::BinaryColor,
     prelude::*,
@@ -530,8 +530,8 @@ chip8_buffer: &[[bool; DISPLAY_WIDTH]; DISPLAY_HEIGHT],
 
 fn run_game<I2C>(
     ssd1306: &mut Ssd1306<I2C, DisplaySize128x64, BufferedGraphicsMode<DisplaySize128x64>>, 
-    rows: Vec<_>,
-    cols: Vec<_>,
+    rows: Vec<OutputPin>,
+    cols: Vec<InputPin>,
     rom: String, 
     quirks: Quirks, 
     debug: bool
