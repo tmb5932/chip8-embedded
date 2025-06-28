@@ -602,8 +602,6 @@ where
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    enable_raw_mode()?; // Enable raw mode
-
     let i2c = I2cdev::new("/dev/i2c-1").unwrap();
     let interface = I2CDisplayInterface::new(i2c);
     
@@ -641,8 +639,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let debug = true;
 
     run_game(&mut display, rows, cols, filename.to_string(), quirks, debug)?;
-
-    disable_raw_mode()?; // Always restore raw mode on exit
 
     Ok(())
 }
