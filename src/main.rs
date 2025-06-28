@@ -3,11 +3,9 @@ use ssd1306::{prelude::*, I2CDisplayInterface, Ssd1306};
 use rand::{RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use std::time::{Duration, Instant};
-use rppal::gpio::Gpio;
-use ssd1306::mode::BufferedGraphicsMode;
 
-use crossterm::terminal::{enable_raw_mode, disable_raw_mode};
-use crossterm::event::{self, Event, KeyCode};
+use ssd1306::mode::BufferedGraphicsMode;
+use rppal::gpio::{Gpio, Level};
 use embedded_graphics::{
     pixelcolor::BinaryColor,
     prelude::*,
