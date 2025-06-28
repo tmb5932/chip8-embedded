@@ -559,7 +559,7 @@ where
 
             for (j, col) in cols.iter().enumerate() {
                 if col.read() == Level::Low {
-                    let key = CHIP8_KEY_MAP[i][j];
+                    let key = KEY_MAP[i][j];
                     println!("Key {:X?} pressed", key);
                 }
             }
