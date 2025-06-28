@@ -530,8 +530,7 @@ chip8_buffer: &[[bool; DISPLAY_WIDTH]; DISPLAY_HEIGHT],
 
 fn run_game<I2C>(
     ssd1306: &mut Ssd1306<I2C, DisplaySize128x64, BufferedGraphicsMode<DisplaySize128x64>>, 
-    rows: Vec<OutputPin>,
-    cols: Vec<InputPin>,
+    gpio: Gpio,
     rom: String, 
     quirks: Quirks, 
     debug: bool
@@ -541,6 +540,16 @@ where
 {
     let timer_interval = Duration::from_millis(16);
     let mut last_timer_tick = Instant::now();    
+
+    // Get all keypad row pins
+    let mut rows: Vec<_> = ROW_PINS.iter()
+        .map(|&pin| gpio.get(pin).unwrap().into_output_high())
+        .collect();
+
+    // Get all keypad col pins
+    let cols: Vec<_> = COL_PINS.iter()
+        .map(|&pin| gpio.get(pin).unwrap().into_input_pullup())
+        .collect();
 
     let mut chip8 = Chip8::new(quirks);
 
@@ -607,17 +616,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     let gpio = Gpio::new().unwrap();
 
-    // Get all keypad row pins
-    let mut rows: Vec<_> = ROW_PINS.iter()
-        .map(|&pin| gpio.get(pin).unwrap().into_output_high())
-        .collect();
-
-    // Get all keypad col pins
-    let cols: Vec<_> = COL_PINS.iter()
-        .map(|&pin| gpio.get(pin).unwrap().into_input_pullup())
-        .collect();
-
-
     // Create display instance
     let mut display = Ssd1306::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
         .into_buffered_graphics_mode();
@@ -638,7 +636,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let debug = true;
 
-    run_game(&mut display, rows, cols, filename.to_string(), quirks, debug)?;
+    run_game(&mut display, gpio, filename.to_string(), quirks, debug)?;
 
     Ok(())
 }
