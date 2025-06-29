@@ -336,6 +336,7 @@ impl Chip8 {
                     }
                     0xD => {
                         // Alter Display
+                        self.draw_flag = true;
                         let x_coord = self.v[inst.x] as usize % DISPLAY_WIDTH;
                         let y_coord = self.v[inst.y] as usize % DISPLAY_HEIGHT;
                         self.v[0xF] = 0; // Reset collision flag
@@ -343,7 +344,7 @@ impl Chip8 {
                         for index in 0..inst.n as usize {
                             let sprite_byte = self.memory[self.i as usize + index];
                             
-                                    // Y-coordinate handling
+                            // Y-coordinate handling
                             let pixel_y = y_coord + index;
                             if self.quirks.clip && pixel_y >= DISPLAY_HEIGHT {
                                 continue; // skip drawing if clipped vertically
@@ -361,6 +362,7 @@ impl Chip8 {
                                 } else {
                                     pixel_x % DISPLAY_WIDTH
                                 };
+
                                 let py = if self.quirks.clip {
                                     pixel_y
                                 } else {
@@ -379,8 +381,6 @@ impl Chip8 {
                                 }
                             }
                         }
-                        self.draw_flag = true;
-        
                     }
                     0xE => {
                         match inst.nn {
@@ -558,6 +558,7 @@ where
     chip8.debug = debug;
 
     let mut id: u128 = 0;
+
     'running: loop {
         println!("{}", id);
         id += 1;
