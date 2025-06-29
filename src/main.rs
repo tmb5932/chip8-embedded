@@ -1,10 +1,12 @@
-use linux_embedded_hal::I2cdev;
-use ssd1306::{prelude::*, I2CDisplayInterface, Ssd1306};
+use linux_embedded_hal::spidev;
+use ssd1306::{prelude::*, Ssd1306};
+use ssd1306::mode::buffered_graphics::BufferedGraphicsMode;
+
+use spidev::{SpidevOptions, Spidev, SpiModeFlags};
+
 use rand::{RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use std::time::{Duration, Instant};
-
-use ssd1306::mode::BufferedGraphicsMode;
 use rppal::gpio::{Gpio, Level, OutputPin, InputPin};
 use embedded_graphics::{
     pixelcolor::BinaryColor,
@@ -24,6 +26,9 @@ const KEY_MAP: [[u8; 4]; 4] = [
 ];
 
 // Display constants
+const SPI_DC_PIN: u8 = 25;
+const SPI_CS_PIN: u8 = 5;
+
 const DISPLAY_WIDTH: usize = 64;
 const DISPLAY_HEIGHT: usize = 32;
 
@@ -501,6 +506,28 @@ impl Chip8 {
     }
 }
 
+pub fn setup_display() -> Ssd1306<SPIInterface<Spidev, rppal::gpio::OutputPin>, DisplaySize128x64, BufferedGraphicsMode<DisplaySize128x64>> {
+    // SPI setup
+    let mut spi = Spidev::open("/dev/spidev0.0").unwrap();
+    let options = SpidevOptions::new()
+        .bits_per_word(8)
+        .max_speed_hz(10_000_000)
+        .mode(SpiModeFlags::SPI_MODE_0)
+        .build();
+    spi.configure(&options).unwrap();
+
+    // GPIO setup
+    let gpio = Gpio::new().unwrap();
+    let dc = gpio.get(SPI_DC_PIN)?.into_output();  // Data/Command pin
+    
+    let interface = SPIInterface::new(spi, dc);
+    let mut display = Ssd1306::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
+        .into_buffered_graphics_mode();
+    display.init().unwrap();
+
+    display
+}
+
 pub fn update_display(
     display: &mut Ssd1306<
     impl WriteOnlyDataCommand,
@@ -528,16 +555,13 @@ chip8_buffer: &[[bool; DISPLAY_WIDTH]; DISPLAY_HEIGHT],
 
 }
 
-fn run_game<I2C>(
-    ssd1306: &mut Ssd1306<I2C, DisplaySize128x64, BufferedGraphicsMode<DisplaySize128x64>>, 
+fn run_game<DI: WriteOnlyDataCommand, SPI>(
+    ssd1306: &mut Ssd1306<SPI, DisplaySize128x64, BufferedGraphicsMode<DisplaySize128x64>>, 
     gpio: Gpio,
     rom: String, 
     quirks: Quirks, 
     debug: bool
-) -> Result<(), Box<dyn std::error::Error>> 
-where
-    I2C: WriteOnlyDataCommand,
-{
+) -> Result<(), Box<dyn std::error::Error>> {
     let timer_interval = Duration::from_millis(16);
     let mut last_timer_tick = Instant::now();    
 
@@ -607,14 +631,24 @@ where
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let i2c = I2cdev::new("/dev/i2c-1").unwrap();
-    let interface = I2CDisplayInterface::new(i2c);
+    // SPI setup
+    let mut spi = Spidev::open("/dev/spidev0.0").unwrap();
+    let options = SpidevOptions::new()
+    .bits_per_word(8)
+    .max_speed_hz(10_000_000)
+    .mode(spidev::SpiModeFlags::SPI_MODE_0)
+    .build();
+    spi.configure(&options).unwrap();
     
+    // rppal GPIO setup for DC and RST
     let gpio = Gpio::new().unwrap();
+    let dc: OutputPin = gpio.get(25).unwrap().into_output();
+
+    // Create SPI interface
+    let interface = SPIInterface::new(spi, dc);
 
     // Create display instance
-    let mut display = Ssd1306::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
-        .into_buffered_graphics_mode();
+    let mut display = setup_display();
 
     // Initialize display
     display.init().unwrap();
