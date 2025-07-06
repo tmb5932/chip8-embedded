@@ -1,14 +1,15 @@
-use linux_embedded_hal::spidev;
-use ssd1306::{prelude::*, Ssd1306};
-use ssd1306::mode::buffered_graphics::BufferedGraphicsMode;
+use linux_embedded_hal::{Spidev, spidev::SpidevOptions};
+use rppal::gpio::{Gpio, Level, OutputPin, InputPin};
+use ssd1306::{prelude::*, Ssd1306, mode::BufferedGraphicsMode, Builder};
 
-use spidev::{SpidevOptions, Spidev, SpiModeFlags};
+// use spidev::{SpidevOptions, Spidev, SpiModeFlags};
 
 use rand::{RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use std::time::{Duration, Instant};
-use rppal::gpio::{Gpio, Level, OutputPin, InputPin};
+
 use embedded_graphics::{
+    primitives::Rectangle,
     pixelcolor::BinaryColor,
     prelude::*,
     Drawable,
@@ -27,7 +28,7 @@ const KEY_MAP: [[u8; 4]; 4] = [
 
 // Display constants
 const SPI_DC_PIN: u8 = 25;
-const SPI_CS_PIN: u8 = 5;
+const SPI_RST_PIN: u8 = 24;
 
 const DISPLAY_WIDTH: usize = 64;
 const DISPLAY_HEIGHT: usize = 32;
@@ -506,26 +507,27 @@ impl Chip8 {
     }
 }
 
-pub fn setup_display() -> Ssd1306<SPIInterface<Spidev, rppal::gpio::OutputPin>, DisplaySize128x64, BufferedGraphicsMode<DisplaySize128x64>> {
+pub fn setup_display(gpio: Gpio) -> Ssd1306<SPIInterface<Spidev, rppal::gpio::OutputPin>, DisplaySize128x64, BufferedGraphicsMode<DisplaySize128x64>> {
     // SPI setup
     let mut spi = Spidev::open("/dev/spidev0.0").unwrap();
-    let options = SpidevOptions::new()
+    let mut spi_opts = spidev::SpidevOptions::new();
+    spi_opts
         .bits_per_word(8)
         .max_speed_hz(10_000_000)
-        .mode(SpiModeFlags::SPI_MODE_0)
-        .build();
-    spi.configure(&options).unwrap();
-
+        .mode(spidev::SpiModeFlags::SPI_MODE_0);
+    spi.configure(&mut &spi_opts).unwrap();
+    
     // GPIO setup
-    let gpio = Gpio::new().unwrap();
-    let dc = gpio.get(SPI_DC_PIN)?.into_output();  // Data/Command pin
+    let dc = gpio.get(SPI_DC_PIN)?.into_output();   // Data/Command pin
+    let rst = gpio.get(SPI_RST_PIN)?.into_output(); // Reset pin
     
     let interface = SPIInterface::new(spi, dc);
-    let mut display = Ssd1306::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
-        .into_buffered_graphics_mode();
-    display.init().unwrap();
+    // Initialize the display
+    let mut display: Ssd1306<_, _, BufferedGraphicsMode<_>> =
+        Ssd1306::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
+            .into_buffered_graphics_mode();
 
-    display
+    display.init().unwrap()
 }
 
 pub fn update_display(
@@ -552,7 +554,6 @@ chip8_buffer: &[[bool; DISPLAY_WIDTH]; DISPLAY_HEIGHT],
     }
 
     display.flush().unwrap();
-
 }
 
 fn run_game<DI: WriteOnlyDataCommand, SPI>(
@@ -630,25 +631,12 @@ fn run_game<DI: WriteOnlyDataCommand, SPI>(
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // SPI setup
-    let mut spi = Spidev::open("/dev/spidev0.0").unwrap();
-    let options = SpidevOptions::new()
-    .bits_per_word(8)
-    .max_speed_hz(10_000_000)
-    .mode(spidev::SpiModeFlags::SPI_MODE_0)
-    .build();
-    spi.configure(&options).unwrap();
-    
+fn main() -> Result<(), Box<dyn std::error::Error>> {    
     // rppal GPIO setup for DC and RST
     let gpio = Gpio::new().unwrap();
-    let dc: OutputPin = gpio.get(25).unwrap().into_output();
-
-    // Create SPI interface
-    let interface = SPIInterface::new(spi, dc);
 
     // Create display instance
-    let mut display = setup_display();
+    let mut display = setup_display(gpio);
 
     // Initialize display
     display.init().unwrap();

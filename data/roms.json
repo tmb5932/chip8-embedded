@@ -1,69 +1,11 @@
-{
-    "tests": [
-        {
-            "title": "CHIP8 LOGO",
-            "file": "1-chip8-logo.ch8",
-            "description": "Basic display test"
-        },
-        {
-            "title": "IBM LOGO",
-            "file": "2-ibm-logo.ch8",
-            "description": "Medium display test"
-        },
-        {
-            "title": "CORAX+",
-            "file": "3-corax+.ch8",
-            "description": "Opcode test"
-        },
-        {
-            "title": "FLAG TEST",
-            "file": "4-flags.ch8",
-            "description": "Flag test"
-        },
-        {
-            "title": "QURIKS TEST",
-            "file": "5-quirks.ch8",
-            "description": "Quirks test"
-        },
-        {
-            "title": "KEYPAD TEST",
-            "file": "6-keypad.ch8",
-            "description": "Keypad test"
-        },
-        {
-            "title": "SOUND TEST",
-            "file": "7-beep.ch8",
-            "description": "Sound test"
-        },
-        {
-            "title": "DELAY TIMER TEST",
-            "file": "delay-timer-test.ch8",
-            "description": "Delay Timer Test (2010), by Matthew Mikolay<br/><br/>Here's another little program I wrote to test out a feature in my game. This program allows the user to change the value of the V3 register using the 2 and 8 keys. When the 5 key is pressed, the delay timer starts counting down from the value the user placed into the V3 register, and the screen is updated as the value changes."
-        },
-        {
-            "title": "RANDOM NUMBER TEST",
-            "file": "random-number-test.ch8",
-            "description": "Random Number Test (2010), by Matthew Mikolay<br/><br/>I don't know if any of you will be interested in this, but I wrote this small program while coding my game to test out the random number generator. I wanted to see if there is a chance that zero will show up as the random number, and it turns out it can. Anyway, when you run the program, it brings a random number up on the screen. When you press any of the keys, it brings another random number up on the screen. This goes on until you quit the program. Address 0x202 holds the C0FF instruction, which commands the CHIP-8 interpreter to set V0 to a random number with the mask 0xFF. This yields 256 different possible numbers (0-255). If C0FF is changed to something like C00A, then the mask will change. This would yield 11 different possible numbers (0-10)."
-        },      
-        {
-            "title": "TEST OPCODES",
-            "file": "test-opcode.ch8",
-            "description": "Tests Chip8 opcodes"
-        },
-        {
-            "title": "ZERO",
-            "file": "zero-demo.ch8",
-            "description": "Zero Demo (2007), by zeroZshadow<br/><br/>simple demo with 4 bouncing sprites. Enjoy!"
-        }
-    ],
-    "games": [
+[
     {
         "title": "15 PUZZLE",
         "file": "15-puzzle.ch8",
         "description": "15 Puzzle, by Roger Ivie<br/><br/>Rearrange the tiles into the sequence 0-F. Moves tile by it associated key."
     },
     {
-        "title": "ADDITION PROBLEMS",
+        "title": "ADD PROBS",
         "file": "addition-problems.ch8",
         "description": "Addition Problems, by Paul C. Moews<br/><br/>Do simple math."
     },
@@ -138,12 +80,12 @@
         "description": "Cave (199x)<br/><br/>Guide the dot to end of the cave maze without bumping into a wall. Navigation: 4, 6, 2, 8."
     },
     {
-        "title": "CLOCK PROGRAM",
+        "title": "CLOCK",
         "file": "clock-program.ch8",
         "description": "Clock Program (1981), by Bill Fisher<br/><br/>This neat little clock program is the perfect program to run when someone asks: \"That's nice, but what can your computer DO?\" The program features \"reverse\" video numerals on the screen, which is a nice change from the usual white numbers on a black background. Instructions:<br/>- Type six digits on the hex keypad for the desired clock starting time, using 23 hour format (ex.173055)<br/>- Hit any hex key to start clock running at the above time setting."
     },
     {
-        "title": "COIN FLIPPING",
+        "title": "COIN FLIPS",
         "file": "coin-flipping.ch8",
         "description": "Coin Flipping (1978), by Carmelo Cortez<br/><br/>The game is a Coin FlLpping program. Flip run up and the computer starts to flip a coin, and at the same tine shosing heads and tails on the screen, stopping at the value set in VC."
     },
@@ -208,12 +150,12 @@
         "description": "IBM logo"
     },
     {
-        "title": "JUMPING X AND O",
+        "title": "JUMPING XO",
         "file": "jumping-x-and-o.ch8",
         "description": "Jumping X and O (1997), by Harry Kleinberg<br/><br/>Here is what the program is written to do. First, a solid 6×6spot block appears in the upper right quadrant of the tv display. A 5×5 \"X\" pattern appears in the center and jumps randomly to a new location every 1/5 second. When the X overlaps the 6×6 block, the X disappears, an \"0\" pattern appears in the center of the screen, and repeats the process, being replaced by the X when an overlap with the block occurs. The program continues until the machine IS stopped"
     },
     {
-        "title": "KALEIDOSCOPE",
+        "title": "KALEIDOSC..",
         "file": "kaleidoscope.ch8",
         "description": "Kaleidoscope (1978), by Joseph Weisbecker<br/><br/>Four spots appear in a group at the center of the screen. Press keys 2, 4,  6, or 8 to create a pattern. Keep your pattern smaller than 138 key depressions. Push key 0 to terminate pattern entry. Pushing key 0 causes your pattern to be continuously repeated forming a fascinating, changing kaleidoscope display on the screen. A \"44444442220\" key sequence provides a very nice effect Experiment to find other nice patterns."
     },
@@ -228,7 +170,7 @@
         "description": "Life (1980), by G.V. Samways<br/><br/>This is a display of cell growth, in accordance with the following rules:<br/>1. A cell is born if 3 cells are adjecent to an empty space.<br/>2. A cell lives if 2 or 3 cells are adjacent, and dies otherwise.<br/>3. All events take place simultaneously.<br/>To start the game, you make a pattern by entering the cell coordinates, first the \"Y\" from 0-7 downwards, then the \"X\" from 0-F across. F initialises the program, and the number of scans is entered plus one, so that 1 gives 0 scans to F giving 14, and 0 giving 255. The sit back and watch the colony live, or die."
     },
     {
-        "title": "LUNAR LANDER",
+        "title": "LUNAR LAND",
         "file": "lunar-lander.ch8",
         "description": "Lunar Lander (1979), by Udo Pernisz<br/><br/>You are descending to the floor of a 250-foot crater. The right side of the TV display shows amount of fuel, feet from bottom and fall rate per cycle. Lenght of fall rate cycle changes from about 1/4 second to one second.  The fall rate increases by one foot per second/per cycle. The computer will update the display only at the end of each cycle.<br/><br/>The left side of the display shows the Lunar Lander descending from 250 feet. The Lander will first appear at one of sixteen locations. It will then slowly drop down the crater. The crater walls have rock formations protruding from them which must be avoided.  If either rocket motor should touch any part of the crater, the Lander will explode in a cloud of smoke and disintegrate. (Remember, these are atomic thrusters and react like miniature atomic bombs upon impact).<br/><br/>When you reach 32 feet, the display will change, and you will see the crater floor. You must now land between the rock formations on the floo and maintain a minimum fall rate.  As you drop your fall rate to zero, you soon discover that the Lander becomes more and more unstable just as any hovering object would. And now with perfect skill you guide the ship in for a perfect touch down, or?"
     },
@@ -248,7 +190,7 @@
         "description": "Merlin, by David Winter<br/><br/>This is the SIMON game. The goal is to remember in which order the squares are lighted. The game begins by lighting 4 random squares, and then asks you to light the squares in the correct order. You win a level when you give the exact order, and each increasing level shows a additionnal square. The game ends when you light an incorrect square. Keys are 4 and 5 for the two upper squares, then 7 and 8 for the two other ones."
     },
     {
-        "title": "MINIMAL GAME",
+        "title": "MINIMAL",
         "file": "minimal-game.ch8",
         "description": "Minimal Game (2007), by Revival Studios"
     },
@@ -258,7 +200,7 @@
         "description": "Missile, by David Winter<br/><br/>Shoot the targets with the moving gun."
     },
     {
-        "title": "MOST DANGEROUS GAME",
+        "title": "MOST DANGER",
         "file": "most-dangerous-game.ch8",
         "description": "Most Dangerous Game, by Peter Maruhnic<br/><br/>Most Dangerous Game pits a hunter against a hunted in a maze.  The hunter must shoot the hunted before either time runs out or the hunted escapes the maze. However, neither the hunted nor the hunter can see a wall in the maze until he runs into it.  There is always at least one path through the maze."
     },
@@ -273,7 +215,7 @@
         "description": "Paddles<br/><br/>Simple pong game."
     },
     {
-        "title": "PARTICLE DEMO",
+        "title": "PARTIC DEMO",
         "file": "particle-demo.ch8",
         "description": "Particle Demo (2008), by zeroZshadow<br/><br/>This is my particledemo for the Chip-8, SuperChip and MegaChip8. Works on real hardware as well as emulators. Enjoy!"
     },
@@ -288,7 +230,7 @@
         "description": "Pong 2 (Pong hack, 1997), by David Winter"
     },
     {
-        "title": "PONG (1 PLAYER)",
+        "title": "PONG 1plyr",
         "file": "pong-1-player.ch8",
         "description": "Single player pong game"
     },
@@ -308,12 +250,12 @@
         "description": "Rocket (1978), by Joseph Weisbecker<br/><br/>Launch your rocket and earn points."
     },
     {
-        "title": "ROCKET LAUNCHER",
+        "title": "R LAUNCHER",
         "file": "rocket-launcher.ch8",
         "description": "Rocket Launcher game"
     },
     {
-        "title": "ROCKET LAUNCH",
+        "title": "R LAUNCH",
         "file": "rocket-launch.ch8",
         "quirks": {
             "loadStore": true
@@ -326,17 +268,17 @@
         "description": "Rush Hour (2006), by Hap<br/><br/>The goal of the game is to slide the arrow block(s) out of the 6*6 grid. Completing 10 boards will be awarded with the inclusion of the next boardset(s) as seen from the connections on the boardset select screen, a password will be given so you don't have to complete the game in a single session."
     },
     {
-        "title": "RUSSIAN ROULETTE",
+        "title": "RUSS ROULET",
         "file": "russian-roulette.ch8",
         "description": "Russian Roulette (1978), by Carmelo Cortez<br/><br/>This game is called Russian RouLette. Press any key to Spin and pull the Trigger. A \"Click\" or \"Bang\" will show, get ten \"clicks\" in a row and you win."
     },
     {
-        "title": "SEQUENCE SHOOT",
+        "title": "SEQ SHOOT!",
         "file": "sequence-shoot.ch8",
         "description": "Sequence Shoot, by Joyce Weisbecker<br/><br/>You score points by having the sharp-shooter hit the targets in the proper sequence. Pressing the Key C causes the little man to shoot the top target, Key D shoots the one below it, Key E the next lower and Key F the bottom target."
     },
     {
-        "title": "SHOOTING STARS",
+        "title": "SHOOTINSTAR",
         "file": "shooting-stars.ch8",
         "description": "Shooting Stars (1978), by Philip Baltzer"
     },
@@ -356,22 +298,22 @@
         "description": "Pong type of game"
     },
     {
-        "title": "SPACE FLIGHT",
+        "title": "SPACEFLIGHT",
         "file": "space-flight.ch8",
         "description": "Space flight game<br/></br>Fly through the asteroid field. Use 1 and 4 key to navigate space ship and E/F to start the game."
     },
     {
-        "title": "SPACEFIGHTERS",
+        "title": "SPACFIGHTER",
         "file": "programmable-spacefighters.ch8",
         "description": "Programmable Spacefighters, by Jef Winsor<br/><br/>Programmable Spacefighters is a combat game involving 2 to 8 spaceships competing for the domination of a contained field in space. The field of play is a two-dimensional representation of an oblong spheroid."
     },
     {
-        "title": "SPACE INTERCEPT",
+        "title": "SPACINTERCEP",
         "file": "space-intercept.ch8",
         "description": "Space Intercept (1978), by Joseph Weisbecker<br/><br/>At startup, Press 1 to select the large UFO which counts 5 points when hit or 2 to select the small UFO which counts 15 points when hit. Launch your rocket by pressing key 4,5 or 6. You get 15 rockets as shown in the lower right corner of the screen. Your score is shown in the lower left corner of the screen."
     },
     {
-        "title": "SPACE INVADERS",
+        "title": "SPAC-INVADE",
         "file": "space-invaders.ch8",
         "quirks": {
             "shift": true
@@ -407,7 +349,7 @@
         "description": "Sum Fun, by Joyce Weisbecker<br/><br/>The object of this game is to add up the three digits which appear in the middle of the screen and then hit the key representing the total as fast as you can."
     },
     {
-        "title": "SUPERWORM V4",
+        "title": "SUPERWORMV4",
         "file": "worm-v4.ch8",
         "description": "SuperWorm V4 (2007), by Revival Studios<br/><br/>SuperWorm V4 is an update of the SuperChip8 game: Worm3 by RB. The original game was only for SuperChip, so i've created a Chip-8 port. It also includes several speed fixes and a new control system."
     },
@@ -462,7 +404,7 @@
         "description": "Vers (1991), by JMN<br/><br/>Two-player Tron game."
     },
     {
-        "title": "VERTICAL BRIX",
+        "title": "VERT BRIX",
         "file": "vertical-brix.ch8",
         "description": "Vertical Brix (1996), by Paul Robson<br/><br/>Vertical breakout type of game."
     },
@@ -485,6 +427,60 @@
         "title": "ZERO PONG",
         "file": "zeropong.ch8",
         "description": "Zero Pong (2007), by zeroZshadow<br/><br/>Another pong game"
+    },
+    {
+        "title": "CHIP8 LOGO",
+        "file": "1-chip8-logo.ch8",
+        "description": "Basic display test"
+    },
+    {
+        "title": "IBM LOGO",
+        "file": "2-ibm-logo.ch8",
+        "description": "Medium display test"
+    },
+    {
+        "title": "CORAX+",
+        "file": "3-corax+.ch8",
+        "description": "Opcode test"
+    },
+    {
+        "title": "FLAG TEST",
+        "file": "4-flags.ch8",
+        "description": "Flag test"
+    },
+    {
+        "title": "QUIRKS TEST",
+        "file": "5-quirks.ch8",
+        "description": "Quirks test"
+    },
+    {
+        "title": "KEYPAD TEST",
+        "file": "6-keypad.ch8",
+        "description": "Keypad test"
+    },
+    {
+        "title": "SOUND TEST",
+        "file": "7-beep.ch8",
+        "description": "Sound test"
+    },
+    {
+        "title": "DELAY TEST",
+        "file": "delay-timer-test.ch8",
+        "description": "Delay Timer Test (2010), by Matthew Mikolay<br/><br/>Here's another little program I wrote to test out a feature in my game. This program allows the user to change the value of the V3 register using the 2 and 8 keys. When the 5 key is pressed, the delay timer starts counting down from the value the user placed into the V3 register, and the screen is updated as the value changes."
+    },
+    {
+        "title": "RANDNUM TST",
+        "file": "random-number-test.ch8",
+        "description": "Random Number Test (2010), by Matthew Mikolay<br/><br/>I don't know if any of you will be interested in this, but I wrote this small program while coding my game to test out the random number generator. I wanted to see if there is a chance that zero will show up as the random number, and it turns out it can. Anyway, when you run the program, it brings a random number up on the screen. When you press any of the keys, it brings another random number up on the screen. This goes on until you quit the program. Address 0x202 holds the C0FF instruction, which commands the CHIP-8 interpreter to set V0 to a random number with the mask 0xFF. This yields 256 different possible numbers (0-255). If C0FF is changed to something like C00A, then the mask will change. This would yield 11 different possible numbers (0-10)."
+    },      
+    {
+        "title": "TEST OPCODE",
+        "file": "test-opcode.ch8",
+        "description": "Tests Chip8 opcodes"
+    },
+    {
+        "title": "ZERO",
+        "file": "zero-demo.ch8",
+        "description": "Zero Demo (2007), by zeroZshadow<br/><br/>simple demo with 4 bouncing sprites. Enjoy!"
     }
 ]
-}
