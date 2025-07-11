@@ -2,19 +2,23 @@ use std::time::{Duration, Instant};
 use rppal::{spi::{Spi, Mode, SlaveSelect, Bus}, gpio::{Gpio, Level}};
 
 mod display;
-use display::DisplayInterface;
-
 mod chip8;
-use chip8::Chip8;
-
 mod quirks;
+mod instruction;
+use display::DisplayInterface;
+use chip8::Chip8;
 use quirks::Quirks;
 
-mod instruction;
+// Emulator Cycle Return Values
+const SUCCESSFUL_EXECUTION: u8 = 0;
+const EXIT_ROM: u8 = 1;
 
 // Display Pin constants
 const DC_PIN: u8 = 23;
 const RST_PIN: u8 = 24;
+
+// Buzzer Pin constant
+const BUZZER_PIN: u8 = 25;
 
 // Keypad Pin constants
 const ROW_PINS: [u8; 4] = [17, 27, 22, 10];
@@ -27,13 +31,40 @@ const KEY_MAP: [[u8; 4]; 4] = [
     [0xA, 0x0, 0xB, 0xF],
 ];
 
-// Display constants
+fn load_file_to_memory(chip8: &mut Chip8, path: String, start_location: usize) -> (&mut Chip8, Vec<String>) {
+    let mut i: bool = false;
+    let mut offset: usize = 0;
+    let mut files: Vec<String> = Vec::new();
 
-fn run_game(
-    rom: String, 
-    quirks: Quirks, 
-    debug: bool
-) -> Result<(), Box<dyn std::error::Error>> {
+    // Open file
+    let file = File::open(path).unwrap();
+    let reader = io::BufReader::new(file);
+
+    for line_result in reader.lines() {
+        let line = line_result.unwrap();
+        let trimmed = line.trim();
+        if i {
+            files.push(trimmed.to_owned()); // Add file names to file vector
+            i = false;
+            continue;
+        } else {
+            i = true;
+        }
+
+        // Add to chip8 memory
+        for ch in trimmed.chars() {
+            let ascii_value = ch as u8;
+            chip8.memory[start_location + offset as usize] = ascii_value;
+            offset += 1;
+        }
+        chip8.memory[start_location + offset as usize] = 0x06; // ACK byte at end of each word
+        offset += 1;
+    }
+
+    (chip8, files)
+}
+
+fn run_game(chip8: &mut Chip8) -> Result<(), Box<dyn std::error::Error>> {
     let timer_interval = Duration::from_millis(16);
     let mut last_timer_tick = Instant::now();
 
@@ -44,6 +75,8 @@ fn run_game(
     let gpio = Gpio::new()?;
     let dc = gpio.get(DC_PIN)?.into_output();   // Data/Command pin
     let rst = gpio.get(RST_PIN)?.into_output(); // Reset pin
+
+    let buzzer = gpio.get(BUZZER_PIN)?.into_output(); // Buzzer pin
 
     // Create SPI interface
     let mut screen = DisplayInterface::new(spi, dc, rst);
@@ -62,12 +95,6 @@ fn run_game(
     let cols: Vec<_> = COL_PINS.iter()
         .map(|&pin| gpio.get(pin).unwrap().into_input_pullup())
         .collect();
-
-    let mut chip8 = Chip8::new(quirks);
-
-    chip8.load_rom(&rom)?;
-
-    chip8.debug = debug;
 
     'running: loop {
         // Handle keyboard
@@ -92,14 +119,21 @@ fn run_game(
                 chip8.delay_timer -= 1;
             }
             if chip8.sound_timer > 0 {
+                buzzer.set_high();
                 chip8.sound_timer -= 1;
+            } else {
+                buzzer.set_low();
             }
             last_timer_tick = Instant::now();
         }
 
         // Run Cycle 
         if !chip8.debug || (chip8.debug &&!chip8.paused) {
-            chip8.cycle().unwrap();
+            let result = chip8.cycle().unwrap();
+            
+            if result == EXIT_ROM {
+                break 'running;
+            }
         }
 
         // Update Display
@@ -110,22 +144,20 @@ fn run_game(
     };
 
     screen.clear();
-    Ok(())
+    Ok(chip8.v[1])  // Return Register 1 (for when running my menu ROM)
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let filename = "roms/tests/zero-demo.ch8";
-    let load_store = true;
-    let clip = true;
-    let vf_reset = true;
-    let shift = false;
-    let jump = false;
-    let quirks = Quirks::new(load_store, shift, jump, vf_reset, clip);
-
+    let quirks = Quirks::new(true, false, false, true, true);
     let debug = false;
 
+    let mut chip8 = Chip8::new(quirks);
+    chip8.debug = debug;
 
-    run_game(filename.to_string(), quirks, debug)?;
+    chip8.load_rom(&filename.to_string())?;
+
+    run_game(&mut chip8)?;
 
     Ok(())
 }
