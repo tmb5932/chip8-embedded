@@ -20,8 +20,11 @@ const RST_PIN: u8 = 24;
 // Buzzer Pin constant
 const BUZZER_PIN: u8 = 25;
 
+// LED Pin
+const LED_PIN: u8 = 26;
+
 // Keypad Pin constants
-const ROW_PINS: [u8; 4] = [17, 27, 22, 10];
+const ROW_PINS: [u8; 4] = [2, 3, 4, 27];
 const COL_PINS: [u8; 4] = [0, 5, 6, 13];
 
 const KEY_MAP: [[u8; 4]; 4] = [
@@ -31,40 +34,7 @@ const KEY_MAP: [[u8; 4]; 4] = [
     [0xA, 0x0, 0xB, 0xF],
 ];
 
-fn load_file_to_memory(chip8: &mut Chip8, path: String, start_location: usize) -> (&mut Chip8, Vec<String>) {
-    let mut i: bool = false;
-    let mut offset: usize = 0;
-    let mut files: Vec<String> = Vec::new();
-
-    // Open file
-    let file = File::open(path).unwrap();
-    let reader = io::BufReader::new(file);
-
-    for line_result in reader.lines() {
-        let line = line_result.unwrap();
-        let trimmed = line.trim();
-        if i {
-            files.push(trimmed.to_owned()); // Add file names to file vector
-            i = false;
-            continue;
-        } else {
-            i = true;
-        }
-
-        // Add to chip8 memory
-        for ch in trimmed.chars() {
-            let ascii_value = ch as u8;
-            chip8.memory[start_location + offset as usize] = ascii_value;
-            offset += 1;
-        }
-        chip8.memory[start_location + offset as usize] = 0x06; // ACK byte at end of each word
-        offset += 1;
-    }
-
-    (chip8, files)
-}
-
-fn run_game(chip8: &mut Chip8) -> Result<(), Box<dyn std::error::Error>> {
+fn run_game(chip8: &mut Chip8) -> Result<u8, Box<dyn std::error::Error>> {
     let timer_interval = Duration::from_millis(16);
     let mut last_timer_tick = Instant::now();
 
@@ -76,8 +46,10 @@ fn run_game(chip8: &mut Chip8) -> Result<(), Box<dyn std::error::Error>> {
     let dc = gpio.get(DC_PIN)?.into_output();   // Data/Command pin
     let rst = gpio.get(RST_PIN)?.into_output(); // Reset pin
 
-    let buzzer = gpio.get(BUZZER_PIN)?.into_output(); // Buzzer pin
+    let mut buzzer = gpio.get(BUZZER_PIN)?.into_output(); // Buzzer pin
 
+    let mut led = gpio.get(LED_PIN)?.into_output(); // Buzzer pin
+    led.set_low();
     // Create SPI interface
     let mut screen = DisplayInterface::new(spi, dc, rst);
 
@@ -113,6 +85,16 @@ fn run_game(chip8: &mut Chip8) -> Result<(), Box<dyn std::error::Error>> {
             row.set_high(); // reset row to high
         }
 
+        if chip8.keypad[0xC] {
+            break 'running;
+        }
+
+        if chip8.keypad[0xF] {
+            led.set_high();
+        } else {
+            led.set_low();
+        }
+
         // Timers
         if last_timer_tick.elapsed() >= timer_interval {
             if chip8.delay_timer > 0 {
@@ -143,21 +125,41 @@ fn run_game(chip8: &mut Chip8) -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
+    // Turn off led & buzzer of left on
+    led.set_low();
+    buzzer.set_low();
+
     screen.clear();
-    Ok(chip8.v[1])  // Return Register 1 (for when running my menu ROM)
+
+    let register_value: u8 = chip8.v[1];
+    Ok(register_value)  // Return Register 1 (for when running my menu ROM)
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let filename = "roms/tests/zero-demo.ch8";
+    let menu_file = "roms/menu.ch8";
     let quirks = Quirks::new(true, false, false, true, true);
     let debug = false;
-
     let mut chip8 = Chip8::new(quirks);
     chip8.debug = debug;
 
-    chip8.load_rom(&filename.to_string())?;
+    let mut menu_item: u8 = 0; // Save where you are in menu between the games
 
-    run_game(&mut chip8)?;
+    // Infinitely loop to allow for swapping games without restarting
+    loop {
+        chip8.load_rom(&menu_file.to_string())?;
+        let files: Vec<String> = chip8.load_file_to_memory("data/roms.txt".to_string(), 0x500);
 
-    Ok(())
+        chip8.v[1] = menu_item;
+        menu_item = run_game(&mut chip8).unwrap();
+
+        chip8.reset();
+
+        let filename = &files[menu_item as usize];
+        let filename = format!("roms/{}", filename);
+
+        chip8.load_rom(&filename)?;
+        run_game(&mut chip8).unwrap();
+        
+        chip8.reset();
+    }
 }

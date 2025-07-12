@@ -1,5 +1,6 @@
 use rand::{RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
+use std::{fs::File, io::{self, BufRead}};
 use crate::instruction::Instruction;
 use crate::quirks::Quirks;
 
@@ -89,6 +90,28 @@ impl Chip8 {
         chip8
     }
 
+    pub fn reset(&mut self) {
+        // Reset variables
+        self.memory = [0; 4096];
+        self.v = [0; 16];
+        self.i = 0;
+        self.pc = 0x200;
+        self.display = [[false; DISPLAY_WIDTH]; DISPLAY_HEIGHT];
+        self.stack = [0; 16];
+        self.sp = 0;
+        self.delay_timer = 0;
+        self.sound_timer = 0;
+        self.keypad = [false; 16];
+        self.draw_flag = false;
+        self.wait_for_release = false;
+        self.wait_key = 0;
+
+        // Reload the font set
+        for (i, byte) in FONTSET.iter().enumerate() {
+            self.memory[FONTSET_START + i] = *byte;
+        }
+    }
+
     pub fn debug_print(&mut self) {
         println!("PC: 0x{:X}", self.pc);
         let mut line: u8 = 0;
@@ -103,6 +126,39 @@ impl Chip8 {
         }
 
         print!(" I: 0x{:X}\r\n\n", self.i)
+    }
+
+    pub fn load_file_to_memory(&mut self, path: String, start_location: usize) -> Vec<String> {
+        let mut i: bool = false;
+        let mut offset: usize = 0;
+        let mut files: Vec<String> = Vec::new();
+    
+        // Open file
+        let file = File::open(path).unwrap();
+        let reader = io::BufReader::new(file);
+    
+        for line_result in reader.lines() {
+            let line = line_result.unwrap();
+            let trimmed = line.trim();
+            if i {
+                files.push(trimmed.to_owned()); // Add file names to file vector
+                i = false;
+                continue;
+            } else {
+                i = true;
+            }
+    
+            // Add to chip8 memory
+            for ch in trimmed.chars() {
+                let ascii_value = ch as u8;
+                self.memory[start_location + offset as usize] = ascii_value;
+                offset += 1;
+            }
+            self.memory[start_location + offset as usize] = 0x06; // ACK byte at end of each word
+            offset += 1;
+        }
+    
+        files
     }
 
     pub fn load_rom(&mut self, filename: &str) -> std::io::Result<()> {
@@ -423,7 +479,7 @@ impl Chip8 {
         Ok(SUCCESSFUL_EXECUTION)        
     }
 
-    pub fn cycle(&mut self) -> std::io::Result<()> {
+    pub fn cycle(&mut self) -> std::io::Result<u8> {
         // Fetch
         let instruction: Instruction = self.fetch();
         
