@@ -136,7 +136,7 @@ fn run_game(chip8: &mut Chip8) -> Result<u8, Box<dyn std::error::Error>> {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let menu_file = "roms/menu.ch8";
+    let menu_file = "roms/menu-new.ch8";
     let quirks = Quirks::new(true, false, false, true, true);
     let debug = false;
     let mut chip8 = Chip8::new(quirks);
