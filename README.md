@@ -60,4 +60,7 @@ Along the path of working on this, there have been a few road bumps.
     - After more than 10 hours of straight research into finding a working SPI Display library, I gave up, and made my own simple Display driver, using rppal's SPI crate.
 - Buying the SSD1309 led directly into another issue, I had no clue how to solder. The ssd1309's, or at least the ones I find on Amazon, come un soldered, with some pin headers to attach yourself if you feel inclined. This led to me going and learning how to solder (from youtube), and buying everything I thought I would need.
 - This one is closely related to the first two issues as well. I tested and created this on the Raspberry Pi 5, which has a new "RP1 I/O controller chip". This meant that nearly all standard GPIO libraries for the Raspberry Pi's didn't work with 5, and I needed to find one that did. Eventually I found rppal, which seems to work.
-- 
+
+
+## Author
+Travis Brown (tmb5932)
