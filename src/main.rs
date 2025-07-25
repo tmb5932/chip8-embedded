@@ -68,7 +68,15 @@ fn run_game(chip8: &mut Chip8) -> Result<u8, Box<dyn std::error::Error>> {
         .map(|&pin| gpio.get(pin).unwrap().into_input_pullup())
         .collect();
 
+    let mut start = Instant::now();
+    let mut i: u32 = 0;
     'running: loop {
+        if start.elapsed() >= Duration::from_secs(1) {
+            println!("{}", i);
+            i = 0;
+            start = Instant::now();
+        }
+
         // Handle keyboard
         for (i, row) in rows.iter_mut().enumerate() {
             row.set_low(); // pull current row low
