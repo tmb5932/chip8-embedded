@@ -75,6 +75,8 @@ fn run_game(chip8: &mut Chip8) -> Result<u8, Box<dyn std::error::Error>> {
             println!("{}", i);
             i = 0;
             start = Instant::now();
+        } else {
+            i += 1;
         }
 
         // Handle keyboard
