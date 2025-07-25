@@ -87,6 +87,7 @@ fn run_game(chip8: &mut Chip8) -> Result<u8, Box<dyn std::error::Error>> {
                 let key = KEY_MAP[i][j];
                 if col.read() == Level::Low {
                     chip8.keypad[key as usize] = true;
+                    println!("active {:0x}", key);
                 } else {
                     chip8.keypad[key as usize] = false;
                 }
@@ -101,8 +102,11 @@ fn run_game(chip8: &mut Chip8) -> Result<u8, Box<dyn std::error::Error>> {
 
         if chip8.keypad[0xF] {
             led.set_high();
+            buzzer.set_high();
+
         } else {
             led.set_low();
+            buzzer.set_low();
         }
 
         // Timers
