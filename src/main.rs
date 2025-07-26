@@ -10,9 +10,11 @@ use display::DisplayInterface;
 use chip8::Chip8;
 use quirks::Quirks;
 
-// Emulator Cycle Return Values
-const SUCCESSFUL_EXECUTION: u8 = 0;
+// Emulator Cycle Return Value
 const EXIT_ROM: u8 = 1;
+
+// Load point for my custom game-choosing ROM
+const MENU_LOAD_LOC: usize = 0x500;
 
 // Display Pin constants
 const DC_PIN: u8 = 23;
@@ -21,8 +23,8 @@ const RST_PIN: u8 = 24;
 // Buzzer Pin constant
 const BUZZER_PIN: u8 = 25;
 
-// LED Pin
-const LED_PIN: u8 = 26;
+// Pin for push button that ends current ROM
+const END_PIN: u8 = 16;
 
 // Keypad Pin constants
 const ROW_PINS: [u8; 4] = [2, 3, 4, 27];
@@ -47,10 +49,11 @@ fn run_game(chip8: &mut Chip8, fps: u64) -> Result<u8, Box<dyn std::error::Error
     let dc = gpio.get(DC_PIN)?.into_output();   // Data/Command pin
     let rst = gpio.get(RST_PIN)?.into_output(); // Reset pin
 
-    let mut buzzer = gpio.get(BUZZER_PIN)?.into_output(); // Buzzer pin
+    let mut buzzer = gpio.get(BUZZER_PIN)?.into_output();
+    buzzer.set_low();
 
-    let mut led = gpio.get(LED_PIN)?.into_output(); // Buzzer pin
-    led.set_low();
+    let rom_button = gpio.get(END_PIN)?.into_input_pullup(); // End current ROM pin
+
     // Create SPI interface
     let mut screen = DisplayInterface::new(spi, dc, rst);
 
@@ -96,16 +99,9 @@ fn run_game(chip8: &mut Chip8, fps: u64) -> Result<u8, Box<dyn std::error::Error
             row.set_high(); // reset row to high
         }
 
-        if chip8.keypad[0xC] {
+        if rom_button.is_low() { // Skip to next ROM (or back to menu)
+            while rom_button.is_low() {} // Wait for release to avoid skipping next ROM instantly
             break 'running;
-        }
-
-        if chip8.keypad[0xF] {
-            led.set_high();
-            buzzer.set_high();
-        } else {
-            led.set_low();
-            buzzer.set_low();
         }
 
         // Timers
@@ -143,8 +139,7 @@ fn run_game(chip8: &mut Chip8, fps: u64) -> Result<u8, Box<dyn std::error::Error
         }    
     };
 
-    // Turn off led & buzzer of left on
-    led.set_low();
+    // Turn off buzzer if left on
     buzzer.set_low();
 
     screen.clear();
@@ -165,7 +160,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Infinitely loop to allow for swapping games without restarting
     loop {
         chip8.load_rom(&menu_file.to_string())?;
-        let files: Vec<String> = chip8.load_file_to_memory("data/roms.txt".to_string(), 0x500);
+        let files: Vec<String> = chip8.load_file_to_memory("data/roms.txt".to_string(), MENU_LOAD_LOC);
 
         chip8.v[1] = menu_item;
         menu_item = run_game(&mut chip8, 0).unwrap();
@@ -177,7 +172,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         chip8.load_rom(&filename)?;
         run_game(&mut chip8, 300).unwrap();
-        
+
         chip8.reset();
     }
 }

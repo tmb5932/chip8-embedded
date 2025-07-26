@@ -13,7 +13,7 @@ const SSD1309_WIDTH: usize = 128;
 const SOURCE_WIDTH: usize = 64;
 const SOURCE_HEIGHT: usize = 32;
 
-// ==== Normal Commands (DC = 0) ==== (https://www.hpinfotech.ro/SSD1309.pdf) Page 27
+// ==== SSD1309 Normal Commands (DC = 0) ==== From https://www.hpinfotech.ro/SSD1309.pdf at roughly page 27
 // 0xA5 => Entire Display on (ignore ram)
 // 0xAF => Display ON in normal mode
 // 0xA6/A7 => Set Normal/Inverse Display
@@ -31,7 +31,6 @@ const SOURCE_HEIGHT: usize = 32;
 // 0xA6 => Normal display (not inverted)
 // 0x81 => Set brightness
 // 0x8D => Charge pump (must set this!)
-
 
 // ==== Scrolling Commands ====
 // 0x26 => Right Horizontal Scroll
