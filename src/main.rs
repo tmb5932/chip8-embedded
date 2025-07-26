@@ -1,5 +1,6 @@
 use std::time::{Duration, Instant};
 use rppal::{spi::{Spi, Mode, SlaveSelect, Bus}, gpio::{Gpio, Level}};
+use std::thread::sleep;
 
 mod display;
 mod chip8;
@@ -34,7 +35,7 @@ const KEY_MAP: [[u8; 4]; 4] = [
     [0xA, 0x0, 0xB, 0xF],
 ];
 
-fn run_game(chip8: &mut Chip8) -> Result<u8, Box<dyn std::error::Error>> {
+fn run_game(chip8: &mut Chip8, fps: u64) -> Result<u8, Box<dyn std::error::Error>> {
     let timer_interval = Duration::from_millis(16);
     let mut last_timer_tick = Instant::now();
 
@@ -68,16 +69,16 @@ fn run_game(chip8: &mut Chip8) -> Result<u8, Box<dyn std::error::Error>> {
         .map(|&pin| gpio.get(pin).unwrap().into_input_pullup())
         .collect();
 
-    let mut start = Instant::now();
-    let mut i: u32 = 0;
+    let limit_frames: bool = fps != 0;
+    let mut cycle_speed: u64 = 0; 
+    if limit_frames {
+        cycle_speed = 1_000_000 / fps; // convert fps into how long each frame is, to reach that fps
+    }
+
+    let cycle_duration = Duration::from_micros(cycle_speed);    // Controls cycles per second
+
     'running: loop {
-        if start.elapsed() >= Duration::from_secs(1) {
-            println!("{}", i);
-            i = 0;
-            start = Instant::now();
-        } else {
-            i += 1;
-        }
+        let loop_start = Instant::now();
 
         // Handle keyboard
         for (i, row) in rows.iter_mut().enumerate() {
@@ -87,7 +88,6 @@ fn run_game(chip8: &mut Chip8) -> Result<u8, Box<dyn std::error::Error>> {
                 let key = KEY_MAP[i][j];
                 if col.read() == Level::Low {
                     chip8.keypad[key as usize] = true;
-                    println!("active {:0x}", key);
                 } else {
                     chip8.keypad[key as usize] = false;
                 }
@@ -103,7 +103,6 @@ fn run_game(chip8: &mut Chip8) -> Result<u8, Box<dyn std::error::Error>> {
         if chip8.keypad[0xF] {
             led.set_high();
             buzzer.set_high();
-
         } else {
             led.set_low();
             buzzer.set_low();
@@ -137,6 +136,11 @@ fn run_game(chip8: &mut Chip8) -> Result<u8, Box<dyn std::error::Error>> {
             chip8.draw_flag = false;
             screen.display_2d_array(chip8.display);
         }
+
+        let elapsed = loop_start.elapsed();
+        if limit_frames && elapsed < cycle_duration {
+            sleep(cycle_duration - elapsed);
+        }    
     };
 
     // Turn off led & buzzer of left on
@@ -164,7 +168,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let files: Vec<String> = chip8.load_file_to_memory("data/roms.txt".to_string(), 0x500);
 
         chip8.v[1] = menu_item;
-        menu_item = run_game(&mut chip8).unwrap();
+        menu_item = run_game(&mut chip8, 0).unwrap();
 
         chip8.reset();
 
@@ -172,7 +176,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let filename = format!("roms/{}", filename);
 
         chip8.load_rom(&filename)?;
-        run_game(&mut chip8).unwrap();
+        run_game(&mut chip8, 300).unwrap();
         
         chip8.reset();
     }
