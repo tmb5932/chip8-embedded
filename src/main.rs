@@ -27,8 +27,8 @@ const BUZZER_PIN: u8 = 25;
 const END_PIN: u8 = 16;
 
 // Keypad Pin constants
-const ROW_PINS: [u8; 4] = [2, 3, 4, 27];
-const COL_PINS: [u8; 4] = [0, 5, 6, 13];
+const ROW_PINS: [u8; 4] = [4, 27, 0, 5];
+const COL_PINS: [u8; 4] = [2, 3, 6, 13];
 
 const KEY_MAP: [[u8; 4]; 4] = [
     [0x1, 0x2, 0x3, 0xC],
